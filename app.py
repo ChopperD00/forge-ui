@@ -1534,7 +1534,7 @@ Shot 4: Insert - Hand grabs door handle
         st.button("[GEN] Generate Video", use_container_width=True, type="primary")
 
     with tab7:
-st.markdown("""
+        st.markdown("""
         <div style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:1rem;margin-bottom:1rem">
             <strong>[BOLT] Full Pipeline Execution</strong>
             <p style="color:#888;font-size:0.85rem;margin:0.5rem 0 0 0">
