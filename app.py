@@ -445,7 +445,7 @@ def create_image_pipeline(prompt: str, variations: int = 3) -> Pipeline:
 
 st.set_page_config(
     page_title="SOLUS FORGE 2.0",
-    page_icon="\ud83d\udd25",
+    page_icon=":fire:",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
