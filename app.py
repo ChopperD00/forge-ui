@@ -551,51 +551,63 @@ STACK_CONFIG = {
 
 INTENT_MODULES = [
     {
-        "id": "brand",
-        "icon": "[ART]",
-        "title": "Brand Assets",
-        "subtitle": "Emails, social, brand guides",
-        "tools": ["Stability SD3.5", "Krea AI", "Figma", "Illustrator"],
+        "id": "email_template",
+        "icon": "[EMAIL]",
+        "title": "Email Template Editor",
+        "subtitle": "Update copy & photos from annotated doc",
+        "tools": ["Dropbox", "Google Docs", "Figma", "Stability SD3.5"],
+        "input_type": "file",
+        "placeholder": "Paste Dropbox or Google Doc link with annotations...",
         "color": "#FF6B35"
     },
     {
-        "id": "video_story",
+        "id": "video_localizer",
         "icon": "[VIDEO]",
-        "title": "Video from Story",
-        "subtitle": "Script -> Storyboard -> Edit",
-        "tools": ["Claude Opus", "Krea AI", "Luma Dream Machine", "Runway Gen-3", "After Effects"],
+        "title": "Video Localizer",
+        "subtitle": "Append localized end cards to assets",
+        "tools": ["After Effects", "Runway Gen-3", "ElevenLabs", "Luma"],
+        "input_type": "batch",
+        "placeholder": "Describe localization needs (regions, languages, end card specs)...",
         "color": "#9333EA"
     },
     {
-        "id": "audio",
+        "id": "music_beds",
         "icon": "[MUSIC]",
-        "title": "Audio Production",
-        "subtitle": "Music, VO, SFX",
-        "tools": ["ElevenLabs", "Stability Audio 2.5", "Suno V5"],
+        "title": "Music Bed Generator",
+        "subtitle": "Generate music for social paid ads",
+        "tools": ["Stability Audio 2.5", "Suno V5", "ElevenLabs"],
+        "input_type": "prompt",
+        "placeholder": "Describe mood, tempo, duration (e.g., upbeat 15s for Instagram)...",
         "color": "#3B82F6"
     },
     {
-        "id": "image_gen",
-        "icon": "[IMG]",
-        "title": "Image Generation",
-        "subtitle": "SD3.5, Krea",
-        "tools": ["Stability SD3.5", "Krea AI"],
+        "id": "social_assets",
+        "icon": "[SHARE]",
+        "title": "Social Asset Pack",
+        "subtitle": "Generate sized variants for all platforms",
+        "tools": ["Stability SD3.5", "Krea AI", "Figma"],
+        "input_type": "file",
+        "placeholder": "Paste source asset link or describe the campaign...",
         "color": "#10B981"
     },
     {
-        "id": "quick_clips",
-        "icon": "[BOLT]",
-        "title": "Quick Clips",
-        "subtitle": "Instant video generation",
-        "tools": ["Luma Dream Machine", "Runway Gen-3"],
+        "id": "video_from_brief",
+        "icon": "[FILM]",
+        "title": "Video from Brief",
+        "subtitle": "Script -> Storyboard -> Edit pipeline",
+        "tools": ["Claude Opus", "Luma Dream Machine", "Runway Gen-3", "After Effects"],
+        "input_type": "prompt",
+        "placeholder": "Paste creative brief or describe the video concept...",
         "color": "#F59E0B"
     },
     {
-        "id": "avatar",
+        "id": "avatar_presenter",
         "icon": "[USER]",
-        "title": "Avatar & Presenter",
-        "subtitle": "HeyGen clones, brand kit",
+        "title": "Avatar Presenter",
+        "subtitle": "HeyGen clones with brand voice",
         "tools": ["HeyGen", "ElevenLabs"],
+        "input_type": "prompt",
+        "placeholder": "Paste script or describe the presentation...",
         "color": "#EC4899"
     }
 ]
@@ -959,86 +971,108 @@ def render_tool_pill(name, status):
 # ============================================================================
 
 def page_lander():
-    """Main landing page with intent selection"""
-    st.markdown('<h1 class="main-header">:fire: SOLUS FORGE</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">What are you building today?</p>', unsafe_allow_html=True)
-    
-    # Intent Grid
+    """Main landing page with workflow selection and goal input"""
+    st.markdown('<h1 class="main-header">SOLUS FORGE</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Creative Command Center</p>', unsafe_allow_html=True)
+
+    # Session Goal Input - the key workflow driver
+    st.markdown("### What are you working on today?")
+
+    session_goal = st.text_area(
+        "Describe your goal or paste a link to your brief/assets",
+        placeholder="e.g., Update Q1 email template with new hero images from the Dropbox folder, localize the CTA for APAC markets...",
+        height=100,
+        key="session_goal_input"
+    )
+
+    if session_goal:
+        st.session_state.session_goal = session_goal
+
+    st.markdown("---")
+    st.markdown("### Or choose a workflow:")
+
+    # Intent Grid - 3 columns
     cols = st.columns(3)
     for i, intent in enumerate(INTENT_MODULES):
         with cols[i % 3]:
+            # Card-style button with description
+            card_html = f"""
+            <div style="background:linear-gradient(135deg, #1a1a2e, #16213e);
+                        border:2px solid {intent['color']}40;
+                        border-radius:12px;
+                        padding:1rem;
+                        margin:0.5rem 0;
+                        cursor:pointer;
+                        transition:all 0.2s ease;">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem">{intent['icon']}</div>
+                <div style="font-weight:600;color:#fff">{intent['title']}</div>
+                <div style="font-size:0.85rem;color:#888;margin-top:0.25rem">{intent['subtitle']}</div>
+                <div style="font-size:0.75rem;color:{intent['color']};margin-top:0.5rem">
+                    {' + '.join(intent['tools'][:3])}{'...' if len(intent['tools']) > 3 else ''}
+                </div>
+            </div>
+            """
+            st.markdown(card_html, unsafe_allow_html=True)
+
             if st.button(
-                f"{intent['icon']} {intent['title']}\n{intent['subtitle']}",
+                f"Start {intent['title']}",
                 key=f"intent_{intent['id']}",
                 use_container_width=True,
-                type="secondary"
+                type="primary" if i < 3 else "secondary"
             ):
                 st.session_state.selected_intent = intent['id']
                 st.session_state.current_view = 'workspace'
                 st.rerun()
-    
-    st.markdown("---")
-    
-    # New Additions Highlight
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown('''
-        <div class="stability-highlight">
-            <h3>[TARGET] Stability AI Suite</h3>
-            <p style="color:#aaa;margin:0.5rem 0">Multimodal generation platform</p>
-            <ul style="color:#888;font-size:0.9rem">
-                <li>SD 3.5 Large - pro image generation</li>
-                <li>Stable Audio 2.5 - SFX & soundscapes</li>
-                <li>SPAR3D - image to 3D in <1 second</li>
-            </ul>
-            <p style="color:#3B82F6;font-size:0.85rem;margin-top:0.75rem">Free Community License (<$1M rev)</p>
-        </div>
-        ''', unsafe_allow_html=True)
 
-    with col2:
-        st.markdown('''
-        <div style="background:linear-gradient(135deg, #1a1a2e, #2d1f3d);border:2px solid #9333EA;border-radius:16px;padding:1.5rem;margin:1rem 0">
-            <h3>[VIDEO] Video Pipeline</h3>
-            <p style="color:#aaa;margin:0.5rem 0">Direct API control</p>
-            <ul style="color:#888;font-size:0.9rem">
-                <li>Luma Dream Machine - fast iteration</li>
-                <li>Runway Gen-3 - polish & final</li>
-                <li>Claude - script & creative dev</li>
-            </ul>
-            <p style="color:#9333EA;font-size:0.85rem;margin-top:0.75rem">Your tools, your control</p>
-        </div>
-        ''', unsafe_allow_html=True)
-    
-    # Quick Stack Overview
-    st.markdown("### :package: Current Stack")
-    
-    tab1, tab2, tab3, tab4 = st.tabs(["Pre-Production", "Generation", "Post-Production", "Avatars"])
-    
-    with tab1:
-        pills = []
-        for name, info in STACK_CONFIG["pre_production"].items():
-            pills.append(render_tool_pill(name, info["status"]))
-        st.markdown(" ".join(pills), unsafe_allow_html=True)
-    
-    with tab2:
-        for category, tools in STACK_CONFIG["generation"].items():
-            st.markdown(f"**{category.upper()}**")
-            pills = [render_tool_pill(name, info["status"]) for name, info in tools.items()]
+    st.markdown("---")
+
+    # Quick context for new users
+    with st.expander("How FORGE works", expanded=False):
+        st.markdown("""
+        **1. Describe your goal** - Paste a brief, link to assets, or just describe what you need
+
+        **2. Choose a workflow** - Pick the pipeline that matches your task
+
+        **3. FORGE orchestrates** - We route to the right tools (Stability, Runway, ElevenLabs, etc.)
+
+        **4. Review & export** - Get your assets, make tweaks, push to production
+
+        ---
+
+        **Common workflows:**
+        - *Email Template* - Drop a Google Doc with annotations, get updated templates
+        - *Video Localizer* - Batch process videos with localized end cards
+        - *Music Beds* - Generate on-brand audio for social ads
+        """)
+
+    # Stack Overview (collapsed)
+    with st.expander("Current Stack Status", expanded=False):
+        tab1, tab2, tab3, tab4 = st.tabs(["Pre-Production", "Generation", "Post-Production", "Avatars"])
+
+        with tab1:
+            pills = []
+            for name, info in STACK_CONFIG["pre_production"].items():
+                pills.append(render_tool_pill(name, info["status"]))
             st.markdown(" ".join(pills), unsafe_allow_html=True)
-    
-    with tab3:
-        pills = [render_tool_pill(name, info["status"]) for name, info in STACK_CONFIG["post_production"].items()]
-        st.markdown(" ".join(pills), unsafe_allow_html=True)
-    
-    with tab4:
-        pills = [render_tool_pill(name, info["status"]) for name, info in STACK_CONFIG["avatars"].items()]
-        st.markdown(" ".join(pills), unsafe_allow_html=True)
+
+        with tab2:
+            for category, tools in STACK_CONFIG["generation"].items():
+                st.markdown(f"**{category.upper()}**")
+                pills = [render_tool_pill(name, info["status"]) for name, info in tools.items()]
+                st.markdown(" ".join(pills), unsafe_allow_html=True)
+
+        with tab3:
+            pills = [render_tool_pill(name, info["status"]) for name, info in STACK_CONFIG["post_production"].items()]
+            st.markdown(" ".join(pills), unsafe_allow_html=True)
+
+        with tab4:
+            pills = [render_tool_pill(name, info["status"]) for name, info in STACK_CONFIG["avatars"].items()]
+            st.markdown(" ".join(pills), unsafe_allow_html=True)
 
 def page_workspace():
-    """Modular workspace view"""
+    """Modular workspace view with goal-driven context"""
     intent = next((i for i in INTENT_MODULES if i['id'] == st.session_state.selected_intent), INTENT_MODULES[0])
-    
+
     # Header
     col1, col2, col3 = st.columns([1, 3, 1])
     with col1:
@@ -1050,48 +1084,239 @@ def page_workspace():
         st.markdown(f"<h2 style='text-align:center'>{intent['icon']} {intent['title']}</h2>", unsafe_allow_html=True)
     with col3:
         st.selectbox("Model", ["Claude Sonnet", "Claude Opus", "Claude Haiku", "GPT-4o"], key="model_select", label_visibility="collapsed")
-    
+
+    # Show session goal if set
+    session_goal = st.session_state.get('session_goal', '')
+    if session_goal:
+        st.info(f"**Goal:** {session_goal[:200]}{'...' if len(session_goal) > 200 else ''}")
+
     st.markdown("---")
-    
+
     # Workspace Layout
     col_canvas, col_panel = st.columns([2, 1])
-    
+
     with col_canvas:
         st.markdown("### [ART] Canvas")
-        
-        # Intent-specific workspace
-        if intent['id'] == 'video_story':
+
+        # Intent-specific input based on input_type
+        input_type = intent.get('input_type', 'prompt')
+        placeholder = intent.get('placeholder', 'Describe what you need...')
+
+        if input_type == 'file':
+            st.markdown(f"**{intent['subtitle']}**")
+            file_link = st.text_input("Paste link to source file", placeholder=placeholder, key="file_link_input")
+            uploaded = st.file_uploader("Or upload directly", accept_multiple_files=True, key="file_upload")
+            if file_link or uploaded:
+                st.success("Assets ready - click Generate to process")
+
+        elif input_type == 'batch':
+            st.markdown(f"**{intent['subtitle']}**")
+            batch_desc = st.text_area("Batch configuration", placeholder=placeholder, height=120, key="batch_input")
+            uploaded = st.file_uploader("Upload video assets", accept_multiple_files=True, type=['mp4', 'mov', 'webm'], key="batch_upload")
+            if uploaded:
+                st.markdown(f"**{len(uploaded)} files ready for processing**")
+
+        else:  # prompt type
+            st.markdown(f"**{intent['subtitle']}**")
+            prompt_input = st.text_area("Your prompt", placeholder=placeholder, height=120, key="prompt_input")
+
+        # Generate button
+        col_gen1, col_gen2 = st.columns(2)
+        with col_gen1:
+            if st.button("[BOLT] Generate", use_container_width=True, type="primary"):
+                st.session_state.generating = True
+                st.rerun()
+        with col_gen2:
+            if st.button("[REFRESH] Clear", use_container_width=True):
+                for key in ['file_link_input', 'file_upload', 'batch_input', 'prompt_input']:
+                    if key in st.session_state:
+                        del st.session_state[key]
+                st.rerun()
+
+        # Intent-specific workspace rendering
+        if intent['id'] == 'email_template':
+            render_email_template_workspace()
+        elif intent['id'] == 'video_localizer':
+            render_video_localizer_workspace()
+        elif intent['id'] == 'music_beds':
+            render_music_beds_workspace()
+        elif intent['id'] == 'social_assets':
+            render_social_assets_workspace()
+        elif intent['id'] == 'video_from_brief':
             render_video_story_workspace()
-        elif intent['id'] == 'audio':
-            render_audio_workspace()
-        elif intent['id'] == 'image_gen':
-            render_image_workspace()
-        elif intent['id'] == 'brand':
-            render_brand_workspace()
-        elif intent['id'] == 'quick_clips':
-            render_quickclips_workspace()
-        elif intent['id'] == 'avatar':
+        elif intent['id'] == 'avatar_presenter':
             render_avatar_workspace()
         else:
-            st.info("Select a workflow to begin")
-    
+            # Fallback for legacy intents
+            if intent['id'] == 'video_story':
+                render_video_story_workspace()
+            elif intent['id'] == 'audio':
+                render_audio_workspace()
+            elif intent['id'] == 'image_gen':
+                render_image_workspace()
+            elif intent['id'] == 'brand':
+                render_brand_workspace()
+            elif intent['id'] == 'quick_clips':
+                render_quickclips_workspace()
+            elif intent['id'] == 'avatar':
+                render_avatar_workspace()
+
     with col_panel:
         # Orchestrator Panel
         render_orchestrator_panel()
 
         st.markdown("---")
 
-        st.markdown("###  Tools")
+        st.markdown("### [PLUG] Tools")
         for tool in intent['tools']:
             status = get_tool_status(tool)
             dot_class = {'new': 'dot-green', 'active': 'dot-green', 'mcp': 'dot-purple', 'setup': 'dot-yellow'}.get(status, 'dot-gray')
             st.markdown(f'<div class="model-selector"><span class="status-dot {dot_class}"></span>{tool}</div>', unsafe_allow_html=True)
 
         st.markdown("### [FOLDER] Assets")
-        st.file_uploader("Drop files here", accept_multiple_files=True, label_visibility="collapsed")
+        st.file_uploader("Drop files here", accept_multiple_files=True, label_visibility="collapsed", key="panel_upload")
 
         st.markdown("### [MEMO] Notes")
-        st.text_area("Session notes", height=100, label_visibility="collapsed", placeholder="Add notes about this project...")
+        st.text_area("Session notes", height=100, label_visibility="collapsed", placeholder="Add notes about this project...", key="session_notes")
+
+
+def render_email_template_workspace():
+    """Email Template Editor workflow"""
+    st.markdown("""
+    <div style="background:linear-gradient(135deg, #1a1a2e, #2d1f3d);border:2px solid #FF6B35;border-radius:16px;padding:1.5rem;margin:1rem 0">
+        <strong>[EMAIL] Email Template Pipeline</strong>
+        <p style="color:#888;font-size:0.9rem">Parse Doc -> Extract Copy -> Generate Images -> Compose Template</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Pipeline steps
+    steps = ["Parse Source Doc", "Extract Copy Changes", "Generate New Images", "Compose Template", "Export"]
+    current_step = st.session_state.get('email_step', 0)
+
+    cols = st.columns(len(steps))
+    for i, step in enumerate(steps):
+        with cols[i]:
+            if i < current_step:
+                st.markdown(f"[OK] {step}")
+            elif i == current_step:
+                st.markdown(f"[BOLT] **{step}**")
+            else:
+                st.markdown(f"[ ] {step}")
+
+    # Preview area
+    st.markdown("#### Preview")
+    preview_area = st.empty()
+    preview_area.markdown("""
+    <div style="border:1px dashed #444;border-radius:8px;padding:2rem;text-align:center;color:#666">
+        Template preview will appear here after processing
+    </div>
+    """, unsafe_allow_html=True)
+
+def render_video_localizer_workspace():
+    """Video Localizer batch processing workflow"""
+    st.markdown("""
+    <div style="background:linear-gradient(135deg, #1a1a2e, #2d1f3d);border:2px solid #9333EA;border-radius:16px;padding:1.5rem;margin:1rem 0">
+        <strong>[VIDEO] Video Localizer Pipeline</strong>
+        <p style="color:#888;font-size:0.9rem">Batch Process -> Generate End Cards -> Append -> Export</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Region configuration
+    st.markdown("#### Target Regions")
+    col1, col2 = st.columns(2)
+    with col1:
+        regions = st.multiselect("Select regions", ["APAC", "EMEA", "LATAM", "NA"], default=["APAC"])
+    with col2:
+        languages = st.multiselect("Languages", ["EN", "ES", "ZH", "JA", "KO", "DE", "FR"], default=["EN"])
+
+    # End card specs
+    st.markdown("#### End Card Specs")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.text_input("CTA Text", value="Learn More", key="endcard_cta")
+    with col2:
+        st.text_input("Logo variant", value="horizontal_white", key="endcard_logo")
+    with col3:
+        st.number_input("Duration (sec)", value=3, min_value=1, max_value=10, key="endcard_duration")
+
+    # Batch status
+    st.markdown("#### Batch Queue")
+    st.markdown("""
+    <div style="border:1px solid #333;border-radius:8px;padding:1rem">
+        <p style="color:#666;margin:0">No videos in queue. Upload files to begin.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+def render_music_beds_workspace():
+    """Music Bed Generator workflow"""
+    st.markdown("""
+    <div style="background:linear-gradient(135deg, #1a1a2e, #16213e);border:2px solid #3B82F6;border-radius:16px;padding:1.5rem;margin:1rem 0">
+        <strong>[MUSIC] Music Bed Generator</strong>
+        <p style="color:#888;font-size:0.9rem">Stability Audio 2.5 + Suno V5 -> Mix -> Export</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Music parameters
+    col1, col2 = st.columns(2)
+    with col1:
+        st.selectbox("Mood", ["Upbeat", "Calm", "Energetic", "Dramatic", "Playful", "Corporate"], key="music_mood")
+        st.selectbox("Genre", ["Electronic", "Acoustic", "Orchestral", "Pop", "Ambient", "Hip-Hop"], key="music_genre")
+    with col2:
+        st.slider("Tempo (BPM)", 60, 180, 120, key="music_tempo")
+        st.slider("Duration (sec)", 5, 60, 15, key="music_duration")
+
+    # Platform presets
+    st.markdown("#### Platform Presets")
+    preset_cols = st.columns(4)
+    presets = [("Instagram", "15s"), ("TikTok", "30s"), ("YouTube", "60s"), ("Stories", "10s")]
+    for i, (platform, dur) in enumerate(presets):
+        with preset_cols[i]:
+            if st.button(f"{platform} ({dur})", key=f"preset_{platform}", use_container_width=True):
+                st.session_state.music_duration = int(dur.replace('s', ''))
+
+    # Generated tracks
+    st.markdown("#### Generated Tracks")
+    st.markdown("""
+    <div style="border:1px dashed #444;border-radius:8px;padding:2rem;text-align:center;color:#666">
+        Generated music tracks will appear here
+    </div>
+    """, unsafe_allow_html=True)
+
+def render_social_assets_workspace():
+    """Social Asset Pack generator"""
+    st.markdown("""
+    <div style="background:linear-gradient(135deg, #1a1a2e, #16213e);border:2px solid #10B981;border-radius:16px;padding:1.5rem;margin:1rem 0">
+        <strong>[SHARE] Social Asset Pack</strong>
+        <p style="color:#888;font-size:0.9rem">Source -> Generate Variants -> Resize -> Export Pack</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Platform selection
+    st.markdown("#### Target Platforms")
+    platforms = {
+        "Instagram": ["Feed (1080x1080)", "Story (1080x1920)", "Reel (1080x1920)"],
+        "Facebook": ["Feed (1200x630)", "Story (1080x1920)", "Ad (1080x1080)"],
+        "LinkedIn": ["Feed (1200x627)", "Story (1080x1920)"],
+        "Twitter/X": ["Feed (1200x675)", "Header (1500x500)"],
+        "TikTok": ["Video (1080x1920)", "Profile (200x200)"]
+    }
+
+    selected_platforms = st.multiselect("Select platforms", list(platforms.keys()), default=["Instagram", "Facebook"])
+
+    # Show sizes for selected platforms
+    if selected_platforms:
+        st.markdown("#### Sizes to generate:")
+        for platform in selected_platforms:
+            sizes = platforms.get(platform, [])
+            st.markdown(f"**{platform}:** {', '.join(sizes)}")
+
+    # Asset grid
+    st.markdown("#### Generated Assets")
+    st.markdown("""
+    <div style="border:1px dashed #444;border-radius:8px;padding:2rem;text-align:center;color:#666">
+        Asset variants will appear here after generation
+    </div>
+    """, unsafe_allow_html=True)
 
 def get_tool_status(tool_name):
     """Get status for a tool by name"""
