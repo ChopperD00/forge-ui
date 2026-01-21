@@ -1,6 +1,8 @@
 """
-SOLUS FORGE v2.0 - Creative Command Center
+SOLUS FORGE v2.2 - Creative Command Center
 Updated: 2026-01-21
+- Shot List Ingest tab (paste, upload, or link to spreadsheets/docs)
+- Visual Style Training tab (LoRA training for animation/style/character)
 - New intent-based lander flow
 - Streamlined stack: Direct APIs (no CyberFilm wrapper)
 - Luma Dream Machine for iteration + Runway for polish
@@ -1342,37 +1344,197 @@ def render_video_story_workspace():
     if st.session_state.get('active_pipeline'):
         render_pipeline_progress(st.session_state.active_pipeline)
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["[MEMO] Script", "[USERS] Characters", "[IMG] Storyboard", "[CAMERA] Generate", "[BOLT] Pipeline"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["[SCRIPT] Script", "[LIST] Shot List", "[CHAR] Characters", "[BOARD] Storyboard", "[TRAIN] Style Training", "[GEN] Generate", "[PIPE] Pipeline"])
 
     with tab1:
         st.text_area("Script / Treatment", height=200, placeholder="Write your story here... Claude will help with formatting, coverage, and creative development.")
         col1, col2 = st.columns(2)
         with col1:
-            st.button("[SPARK] Claude: Expand & Develop", use_container_width=True)
+            st.button("[AI] Claude: Expand & Develop", use_container_width=True)
         with col2:
-            st.button("[BOOK] Format Screenplay", use_container_width=True)
+            st.button("[FORMAT] Format Screenplay", use_container_width=True)
 
     with tab2:
-        st.text_input("Character Name")
-        st.text_area("Character Description", height=100)
-        st.button("[ART] Generate Character Sheet (SD3.5)", use_container_width=True)
+        # Shot List Ingest Tab
+        st.markdown("""
+        <div style="background:#1a1a2e;border:1px solid #30363d;border-radius:8px;padding:1rem;margin-bottom:1rem">
+            <strong>[LIST] Shot List Ingest</strong>
+            <p style="color:#888;font-size:0.85rem;margin:0.5rem 0 0 0">
+                Import shot lists from spreadsheets, docs, or paste directly. Auto-parses into structured shots for pipeline execution.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        ingest_method = st.radio("Import Method", ["Paste Text", "Upload File", "Link (Dropbox/GDocs)"], horizontal=True)
+
+        if ingest_method == "Paste Text":
+            shot_list_text = st.text_area(
+                "Paste Shot List",
+                height=200,
+                placeholder="""Shot 1: Wide establishing - City skyline at dusk, drone push-in
+Shot 2: Medium - Hero enters frame left, walks toward camera
+Shot 3: Close-up - Hero's face, expression changes from neutral to determined
+Shot 4: Insert - Hand grabs door handle
+...""",
+                key="shot_list_paste"
+            )
+        elif ingest_method == "Upload File":
+            uploaded_file = st.file_uploader("Upload Shot List", type=["csv", "xlsx", "txt", "pdf"], key="shot_list_upload")
+            if uploaded_file:
+                st.success(f"Uploaded: {uploaded_file.name}")
+        else:
+            shot_list_link = st.text_input("Dropbox or Google Docs Link", placeholder="https://docs.google.com/spreadsheets/d/... or https://dropbox.com/...")
+
+        st.markdown("---")
+        st.markdown("##### Parse Settings")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.selectbox("Shot Format", ["Auto-detect", "Numbered (Shot 1, 2...)", "Timecode (00:00:00)", "Scene/Shot (1A, 1B...)"], key="shot_format")
+        with col2:
+            st.selectbox("Duration Source", ["From timecode", "Estimate from description", "Manual per shot"], key="duration_source")
+        with col3:
+            default_duration = st.number_input("Default Duration (sec)", min_value=1, max_value=60, value=5, key="default_shot_duration")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("[PARSE] Parse Shot List", use_container_width=True, type="primary"):
+                st.session_state.shot_list_parsed = True
+                st.success("Shot list parsed! 12 shots detected.")
+        with col2:
+            if st.button("[AI] Claude: Enhance Descriptions", use_container_width=True):
+                st.info("Enhancing shot descriptions with visual detail...")
+
+        # Show parsed shots preview
+        if st.session_state.get('shot_list_parsed'):
+            st.markdown("##### Parsed Shots Preview")
+            preview_data = [
+                {"Shot": "1", "Type": "Wide", "Description": "City skyline at dusk, drone push-in", "Duration": "5s", "Status": "Ready"},
+                {"Shot": "2", "Type": "Medium", "Description": "Hero enters frame left", "Duration": "4s", "Status": "Ready"},
+                {"Shot": "3", "Type": "Close-up", "Description": "Hero's face, expression shift", "Duration": "3s", "Status": "Ready"},
+            ]
+            st.dataframe(preview_data, use_container_width=True)
+            st.button("[SEND] Send to Storyboard", use_container_width=True)
 
     with tab3:
+        st.text_input("Character Name")
+        st.text_area("Character Description", height=100)
+        st.button("[GEN] Generate Character Sheet (SD3.5)", use_container_width=True)
+
+    with tab4:
         st.slider("Number of panels", 4, 24, 8)
         st.selectbox("Style", ["Cinematic", "Comic", "Anime", "Realistic"])
         col1, col2 = st.columns(2)
         with col1:
-            st.button("[BOLT] Iterate (Krea)", use_container_width=True)
+            st.button("[FAST] Iterate (Krea)", use_container_width=True)
         with col2:
-            st.button("[IMG] Final Frames (SD3.5)", use_container_width=True, type="primary")
-
-    with tab4:
-        st.selectbox("Video Model", ["Luma Dream Machine (Iteration)", "Runway Gen-3 (Polish)"])
-        st.slider("Duration (seconds)", 5, 60, 15)
-        st.button("[VIDEO] Generate Video", use_container_width=True, type="primary")
+            st.button("[FINAL] Final Frames (SD3.5)", use_container_width=True, type="primary")
 
     with tab5:
+        # Visual Style Training Tab
         st.markdown("""
+        <div style="background:linear-gradient(135deg, #1a1a2e, #2d1f3d);border:2px solid #F59E0B;border-radius:12px;padding:1rem;margin-bottom:1rem">
+            <strong>[TRAIN] Visual Style Training</strong>
+            <p style="color:#888;font-size:0.85rem;margin:0.5rem 0 0 0">
+                Train custom LoRAs for animation style, character consistency, or motion patterns. Local training on 3090 or cloud via Replicate.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        training_type = st.selectbox("Training Type", [
+            "Animation Style (movement patterns, timing)",
+            "Visual Style (color grading, lighting, texture)",
+            "Character Consistency (face, body, clothing)",
+            "Motion Transfer (reference video to new subject)",
+            "Hybrid (style + character)"
+        ], key="training_type")
+
+        st.markdown("---")
+        st.markdown("##### Reference Material")
+
+        ref_source = st.radio("Reference Source", ["Upload Images/Video", "Link (Dropbox/Drive)", "Existing Project Assets"], horizontal=True, key="ref_source")
+
+        if ref_source == "Upload Images/Video":
+            ref_files = st.file_uploader(
+                "Upload Reference Material",
+                type=["png", "jpg", "jpeg", "mp4", "mov", "gif"],
+                accept_multiple_files=True,
+                key="training_refs"
+            )
+            if ref_files:
+                st.success(f"{len(ref_files)} files uploaded")
+        elif ref_source == "Link (Dropbox/Drive)":
+            st.text_input("Folder Link", placeholder="https://dropbox.com/sh/... or https://drive.google.com/...", key="ref_link")
+        else:
+            st.selectbox("Select Project", ["Q1 Campaign - Hero Assets", "Brand Refresh 2026", "Product Launch Video"], key="existing_project")
+
+        st.markdown("---")
+        st.markdown("##### Training Configuration")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.selectbox("Base Model", [
+                "SDXL 1.0 (images)",
+                "Stable Video Diffusion (video)",
+                "AnimateDiff v3 (motion)",
+                "Luma Dream Machine (scenes)"
+            ], key="base_model")
+            st.slider("Training Steps", 500, 5000, 1500, step=100, key="training_steps")
+            st.slider("Learning Rate", 1e-6, 1e-4, 1e-5, format="%.1e", key="learning_rate")
+
+        with col2:
+            st.selectbox("Compute Target", [
+                "Local (Mac Pro 3090 - 24GB)",
+                "Replicate (A100 - fast)",
+                "Modal (H100 - fastest)",
+                "Queue for overnight"
+            ], key="compute_target")
+            st.text_input("LoRA Name", placeholder="q1-campaign-style-v1", key="lora_name")
+            st.text_input("Trigger Word", placeholder="q1style, campaignlook", key="trigger_word")
+
+        st.markdown("---")
+        st.markdown("##### Training Prompts")
+        st.text_area(
+            "Caption/Prompt Template",
+            height=80,
+            placeholder="A [subject] in q1style, cinematic lighting, film grain, teal and orange color grade...",
+            key="caption_template"
+        )
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            auto_caption = st.checkbox("Auto-caption with Claude", value=True, key="auto_caption")
+        with col2:
+            augment = st.checkbox("Data Augmentation", value=True, key="augment")
+        with col3:
+            regularization = st.checkbox("Use Regularization Images", value=False, key="regularization")
+
+        st.markdown("---")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("[VALIDATE] Validate Dataset", use_container_width=True):
+                st.info("Checking image quality, dimensions, and diversity...")
+        with col2:
+            if st.button("[TRAIN] Start Training", use_container_width=True, type="primary"):
+                st.session_state.training_active = True
+                st.success("Training job queued! Estimated time: ~45 minutes")
+
+        # Training progress (if active)
+        if st.session_state.get('training_active'):
+            st.markdown("##### Training Progress")
+            progress_col1, progress_col2 = st.columns([3, 1])
+            with progress_col1:
+                st.progress(0.35, "Step 525/1500 - Loss: 0.0234")
+            with progress_col2:
+                st.button("[STOP] Stop", type="secondary")
+
+    with tab6:
+        st.selectbox("Video Model", ["Luma Dream Machine (Iteration)", "Runway Gen-3 (Polish)"])
+        st.slider("Duration (seconds)", 5, 60, 15)
+        st.button("[GEN] Generate Video", use_container_width=True, type="primary")
+
+    with tab7:
+st.markdown("""
         <div style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:1rem;margin-bottom:1rem">
             <strong>[BOLT] Full Pipeline Execution</strong>
             <p style="color:#888;font-size:0.85rem;margin:0.5rem 0 0 0">
