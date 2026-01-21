@@ -2,9 +2,10 @@
 SOLUS FORGE v2.0 - Creative Command Center
 Updated: 2026-01-21
 - New intent-based lander flow
-- Streamlined stack: CyberFilm SAGA + Stability AI integration
+- Streamlined stack: Direct APIs (no CyberFilm wrapper)
+- Luma Dream Machine for iteration + Runway for polish
+- Stability AI suite (SD3.5 + Audio 2.5 + SPAR3D)
 - Modular workspace architecture
-- Consolidated video/audio/3D generation
 """
 import streamlit as st
 import json
@@ -25,25 +26,29 @@ st.set_page_config(
 # Stack Configuration
 STACK_CONFIG = {
     "pre_production": {
-        "CyberFilm SAGA": {
-            "status": "new",
-            "type": "platform",
-            "desc": "Scripts → Storyboards → Video",
-            "url": "https://writeonsaga.com",
-            "capabilities": ["screenplay", "storyboard", "character_sheets", "video_gen"],
-            "models": ["Veo 3.1", "Luma Ray-3", "KlingAI 2.1", "FLUX 1.1"]
-        },
-        "Saga.so": {
+        "Claude Opus/Sonnet": {
             "status": "active",
-            "type": "tool",
-            "desc": "Project management & notes",
-            "url": "https://saga.so"
+            "type": "llm",
+            "desc": "Scripts, treatments, character dev",
+            "capabilities": ["screenplay", "creative_writing", "analysis"]
+        },
+        "Krea AI": {
+            "status": "active",
+            "type": "api",
+            "desc": "Real-time storyboard iteration",
+            "url": "https://krea.ai"
+        },
+        "Stability SD3.5": {
+            "status": "active",
+            "type": "api",
+            "desc": "Final storyboard frames, char sheets",
+            "url": "https://stability.ai"
         }
     },
     "generation": {
         "image": {
             "Stability SD3.5": {
-                "status": "new",
+                "status": "active",
                 "type": "api",
                 "desc": "Professional image generation",
                 "url": "https://stability.ai",
@@ -57,16 +62,16 @@ STACK_CONFIG = {
             }
         },
         "video": {
-            "CyberFilm": {
-                "status": "new",
-                "type": "platform",
-                "desc": "Story-to-video pipeline",
-                "models": ["Veo 3.1", "Luma Ray-3", "Runway Gen-4"]
+            "Luma Dream Machine": {
+                "status": "active",
+                "type": "api",
+                "desc": "Fast iteration, creative exploration",
+                "url": "https://lumalabs.ai"
             },
             "Runway Gen-3": {
                 "status": "active",
                 "type": "api",
-                "desc": "Quick clip generation",
+                "desc": "Polish, final renders",
                 "url": "https://runwayml.com"
             }
         },
@@ -78,22 +83,22 @@ STACK_CONFIG = {
                 "url": "https://elevenlabs.io",
                 "voice_id": "luVEyhT3CocLZaLBps8v"
             },
-            "Stability Audio": {
-                "status": "new",
+            "Stability Audio 2.5": {
+                "status": "active",
                 "type": "api",
-                "desc": "SFX, soundscapes, music",
+                "desc": "SFX, soundscapes, ambience",
                 "url": "https://stability.ai"
             },
             "Suno V5": {
                 "status": "optional",
                 "type": "api",
-                "desc": "Full song generation",
+                "desc": "Full song generation (optional)",
                 "url": "https://suno.ai"
             }
         },
         "3d": {
             "Stability SPAR3D": {
-                "status": "new",
+                "status": "active",
                 "type": "api",
                 "desc": "Image → 3D mesh (<1 sec)",
                 "url": "https://stability.ai"
@@ -131,7 +136,7 @@ INTENT_MODULES = [
         "icon": "🎬",
         "title": "Video from Story",
         "subtitle": "Script → Storyboard → Edit",
-        "tools": ["CyberFilm SAGA", "After Effects", "Premiere"],
+        "tools": ["Claude Opus", "Krea AI", "Luma Dream Machine", "Runway Gen-3", "After Effects"],
         "color": "#9333EA"
     },
     {
@@ -139,15 +144,15 @@ INTENT_MODULES = [
         "icon": "🎵",
         "title": "Audio Production",
         "subtitle": "Music, VO, SFX",
-        "tools": ["ElevenLabs", "Stability Audio", "Suno V5"],
+        "tools": ["ElevenLabs", "Stability Audio 2.5", "Suno V5"],
         "color": "#3B82F6"
     },
     {
         "id": "image_gen",
         "icon": "🖼️",
         "title": "Image Generation",
-        "subtitle": "SD3.5, Krea, FLUX",
-        "tools": ["Stability SD3.5", "Krea AI", "CyberFilm FLUX"],
+        "subtitle": "SD3.5, Krea",
+        "tools": ["Stability SD3.5", "Krea AI"],
         "color": "#10B981"
     },
     {
@@ -155,7 +160,7 @@ INTENT_MODULES = [
         "icon": "⚡",
         "title": "Quick Clips",
         "subtitle": "Instant video generation",
-        "tools": ["Runway Gen-3", "Luma Dream Machine"],
+        "tools": ["Luma Dream Machine", "Runway Gen-3"],
         "color": "#F59E0B"
     },
     {
@@ -359,26 +364,38 @@ def init_state():
 
 def check_mcp_status():
     """Check which MCP servers are configured"""
-    status = {}
-    config_paths = [
-        Path.home() / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json",
-        Path.home() / "AppData" / "Roaming" / "Claude" / "claude_desktop_config.json"
-    ]
-    
-    for config_path in config_paths:
-        if config_path.exists():
-            try:
-                with open(config_path) as f:
-                    config = json.load(f)
-                    servers = config.get('mcpServers', {})
-                    status['after-effects'] = 'after-effects' in servers
-                    status['adobe-express'] = 'adobe-express' in servers
-                    status['figma'] = 'figma' in servers
-                    status['photoshop'] = any('ps-mcp' in str(v) for v in servers.values())
-                    status['illustrator'] = any('ai-mcp' in str(v) for v in servers.values())
-                    status['premiere'] = any('premiere' in k.lower() for k in servers.keys())
-            except:
-                pass
+    status = {
+        'after-effects': False,
+        'adobe-express': False,
+        'figma': False,
+        'photoshop': False,
+        'illustrator': False,
+        'premiere': False
+    }
+
+    try:
+        config_paths = [
+            Path.home() / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json",
+            Path.home() / "AppData" / "Roaming" / "Claude" / "claude_desktop_config.json"
+        ]
+
+        for config_path in config_paths:
+            if config_path.exists():
+                try:
+                    with open(config_path, 'r', encoding='utf-8') as f:
+                        config = json.load(f)
+                        servers = config.get('mcpServers', {})
+                        status['after-effects'] = 'after-effects' in servers
+                        status['adobe-express'] = 'adobe-express' in servers
+                        status['figma'] = 'figma' in servers
+                        status['photoshop'] = any('ps-mcp' in str(v) for v in servers.values())
+                        status['illustrator'] = any('ai-mcp' in str(v) for v in servers.values())
+                        status['premiere'] = any('premiere' in k.lower() for k in servers.keys())
+                except (json.JSONDecodeError, IOError, PermissionError):
+                    pass
+    except Exception:
+        pass
+
     return status
 
 # ============================================================================
@@ -439,31 +456,29 @@ def page_lander():
     
     with col1:
         st.markdown('''
-        <div class="cyberfilm-highlight">
-            <h3>✨ NEW: CyberFilm SAGA</h3>
-            <p style="color:#aaa;margin:0.5rem 0">All-in-one filmmaking platform</p>
-            <ul style="color:#888;font-size:0.9rem">
-                <li>AI Copilot (GPT-4o) for scripts</li>
-                <li>Auto-storyboards (FLUX 1.1, Imagen 4)</li>
-                <li>Video gen: Veo 3.1, Luma Ray-3, Runway Gen-4</li>
-                <li>Character sheets & beat outlines</li>
-            </ul>
-            <p style="color:#9333EA;font-size:0.85rem;margin-top:0.75rem">$19.99/mo or Free tier</p>
-        </div>
-        ''', unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown('''
         <div class="stability-highlight">
-            <h3>✨ NEW: Stability AI Suite</h3>
+            <h3>🎯 Stability AI Suite</h3>
             <p style="color:#aaa;margin:0.5rem 0">Multimodal generation platform</p>
             <ul style="color:#888;font-size:0.9rem">
                 <li>SD 3.5 Large - pro image generation</li>
                 <li>Stable Audio 2.5 - SFX & soundscapes</li>
                 <li>SPAR3D - image to 3D in <1 second</li>
-                <li>Stable Virtual Camera - 2D to navigable 3D</li>
             </ul>
             <p style="color:#3B82F6;font-size:0.85rem;margin-top:0.75rem">Free Community License (<$1M rev)</p>
+        </div>
+        ''', unsafe_allow_html=True)
+
+    with col2:
+        st.markdown('''
+        <div style="background:linear-gradient(135deg, #1a1a2e, #2d1f3d);border:2px solid #9333EA;border-radius:16px;padding:1.5rem;margin:1rem 0">
+            <h3>🎬 Video Pipeline</h3>
+            <p style="color:#aaa;margin:0.5rem 0">Direct API control</p>
+            <ul style="color:#888;font-size:0.9rem">
+                <li>Luma Dream Machine - fast iteration</li>
+                <li>Runway Gen-3 - polish & final</li>
+                <li>Claude - script & creative dev</li>
+            </ul>
+            <p style="color:#9333EA;font-size:0.85rem;margin-top:0.75rem">Your tools, your control</p>
         </div>
         ''', unsafe_allow_html=True)
     
@@ -559,34 +574,38 @@ def get_tool_status(tool_name):
 def render_video_story_workspace():
     """Video from Story workflow"""
     st.markdown('''
-    <div class="cyberfilm-highlight">
-        <strong>🎬 CyberFilm SAGA Pipeline</strong>
-        <p style="color:#888;font-size:0.9rem">Script → Character Sheets → Storyboard → Video</p>
+    <div style="background:linear-gradient(135deg, #1a1a2e, #2d1f3d);border:2px solid #9333EA;border-radius:16px;padding:1.5rem;margin:1rem 0">
+        <strong>🎬 Video Production Pipeline</strong>
+        <p style="color:#888;font-size:0.9rem">Claude → Krea → Luma/Runway → After Effects</p>
     </div>
     ''', unsafe_allow_html=True)
-    
+
     tab1, tab2, tab3, tab4 = st.tabs(["📝 Script", "👥 Characters", "🖼️ Storyboard", "🎥 Generate"])
-    
+
     with tab1:
-        st.text_area("Script / Treatment", height=200, placeholder="Write your story here... CyberFilm's AI Copilot will help with formatting, coverage, and suggestions.")
+        st.text_area("Script / Treatment", height=200, placeholder="Write your story here... Claude will help with formatting, coverage, and creative development.")
         col1, col2 = st.columns(2)
         with col1:
-            st.button("✨ AI Coverage", use_container_width=True)
+            st.button("✨ Claude: Expand & Develop", use_container_width=True)
         with col2:
             st.button("📖 Format Screenplay", use_container_width=True)
-    
+
     with tab2:
         st.text_input("Character Name")
         st.text_area("Character Description", height=100)
-        st.button("🎨 Generate Character Sheet", use_container_width=True)
-    
+        st.button("🎨 Generate Character Sheet (SD3.5)", use_container_width=True)
+
     with tab3:
         st.slider("Number of panels", 4, 24, 8)
         st.selectbox("Style", ["Cinematic", "Comic", "Anime", "Realistic"])
-        st.button("🖼️ Generate Storyboard (FLUX 1.1)", use_container_width=True, type="primary")
-    
+        col1, col2 = st.columns(2)
+        with col1:
+            st.button("⚡ Iterate (Krea)", use_container_width=True)
+        with col2:
+            st.button("🖼️ Final Frames (SD3.5)", use_container_width=True, type="primary")
+
     with tab4:
-        st.selectbox("Video Model", ["Veo 3.1 (Best Quality)", "Luma Ray-3 (Fast)", "Runway Gen-4", "KlingAI 2.1"])
+        st.selectbox("Video Model", ["Luma Dream Machine (Iteration)", "Runway Gen-3 (Polish)"])
         st.slider("Duration (seconds)", 5, 60, 15)
         st.button("🎬 Generate Video", use_container_width=True, type="primary")
 
@@ -621,17 +640,17 @@ def render_audio_workspace():
 def render_image_workspace():
     """Image generation workflow"""
     col1, col2 = st.columns([2, 1])
-    
+
     with col1:
         st.text_area("Prompt", height=150, placeholder="Describe the image you want to create...")
         st.text_area("Negative prompt", height=50, placeholder="What to avoid...")
-    
+
     with col2:
-        st.selectbox("Model", ["Stability SD 3.5 Large", "SDXL", "Krea Real-time", "FLUX 1.1 (via CyberFilm)"])
+        st.selectbox("Model", ["Stability SD 3.5 Large", "SDXL", "Krea Real-time"])
         st.selectbox("Aspect Ratio", ["1:1", "16:9", "9:16", "4:3", "3:2"])
         st.slider("Steps", 20, 50, 30)
         st.slider("CFG Scale", 1.0, 15.0, 7.5)
-    
+
     if st.button("🖼️ Generate Image", type="primary", use_container_width=True):
         st.info("Image generation ready - add API key in settings")
 
@@ -657,20 +676,20 @@ def render_quickclips_workspace():
     st.markdown('''
     <div style="background:#1a1a2e;padding:1rem;border-radius:8px;margin-bottom:1rem">
         <strong>⚡ Instant Video Generation</strong>
-        <p style="color:#888;font-size:0.85rem;margin:0">Direct text-to-video without pre-production</p>
+        <p style="color:#888;font-size:0.85rem;margin:0">Direct text-to-video — Luma for iteration, Runway for polish</p>
     </div>
     ''', unsafe_allow_html=True)
-    
+
     st.text_area("Video prompt", height=100, placeholder="A golden retriever running through autumn leaves in slow motion...")
-    
+
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.selectbox("Model", ["Runway Gen-3 Alpha", "Luma Dream Machine", "Veo 3.1"])
+        st.selectbox("Model", ["Luma Dream Machine (Fast)", "Runway Gen-3 (Quality)"])
     with col2:
         st.selectbox("Duration", ["4 sec", "8 sec", "16 sec"])
     with col3:
         st.selectbox("Aspect", ["16:9", "9:16", "1:1"])
-    
+
     st.button("⚡ Generate Clip", type="primary", use_container_width=True)
 
 def render_avatar_workspace():
@@ -701,23 +720,24 @@ def page_stack():
     
     # Changes Summary
     st.markdown("### 🔄 What's Changed in v2.0")
-    
+
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("#### ➕ Added")
+        st.markdown("#### ➕ Added / Prioritized")
         st.markdown("""
-        - **CyberFilm SAGA** - Script-to-video pipeline
+        - **Luma Dream Machine** - Direct API, fast iteration
         - **Stability SD 3.5** - Pro image generation
-        - **Stability Audio 2.5** - SFX & soundscapes  
+        - **Stability Audio 2.5** - SFX & soundscapes
         - **Stability SPAR3D** - Instant 3D from images
+        - **Claude** - Script & creative development
         """)
-    
+
     with col2:
-        st.markdown("#### ➖ Consolidated")
+        st.markdown("#### ➖ Removed / Optional")
         st.markdown("""
-        - Luma Dream Machine → *Via CyberFilm (Luma Ray-3)*
-        - Multiple storyboard tools → *CyberFilm native*
-        - Some Suno use cases → *Stability Audio (SFX/ambient)*
+        - ~~CyberFilm SAGA~~ → *Build pipeline with existing tools*
+        - ~~Saga.so~~ → *Not essential*
+        - **Suno V5** → *Optional (Stability Audio for SFX)*
         """)
     
     st.markdown("---")
@@ -778,8 +798,8 @@ def page_settings():
             st.text_input("Suno", type="password", key="api_suno")
             st.text_input("HeyGen", type="password", key="api_heygen")
         
-        st.markdown("### Platform Accounts")
-        st.text_input("CyberFilm SAGA (email)", key="cyberfilm_email")
+        st.markdown("### Video Generation")
+        st.text_input("Luma AI", type="password", key="api_luma")
         
         if st.button("💾 Save API Keys"):
             st.success("API keys saved to session")
@@ -805,24 +825,27 @@ def page_settings():
     with tab3:
         st.markdown("""
         ### Quick Setup Guide
-        
-        **1. CyberFilm SAGA**
-        - Sign up at [writeonsaga.com](https://writeonsaga.com)
-        - Free tier available (limited features)
-        - Full access: $19.99/month
-        
-        **2. Stability AI**
+
+        **1. Stability AI** (Image, Audio, 3D)
         - Get API key at [stability.ai](https://stability.ai)
         - Free Community License for <$1M revenue
         - Includes SD 3.5, Audio 2.5, SPAR3D
-        
-        **3. Adobe MCP Setup**
+
+        **2. Luma Dream Machine**
+        - Get API key at [lumalabs.ai](https://lumalabs.ai)
+        - Credits-based pricing
+
+        **3. Runway Gen-3**
+        - Get API key at [runwayml.com](https://runwayml.com)
+        - Credits-based pricing
+
+        **4. Adobe MCP Setup**
         ```bash
         cd ~/Desktop/"Solus Forge 1.2"/adobe-mcp
         ./install-adobe-mcp.sh
         ```
-        
-        **4. Restart Claude Desktop** after MCP installation
+
+        **5. Restart Claude Desktop** after MCP installation
         """)
 
 # ============================================================================
@@ -875,9 +898,13 @@ def main():
     st.markdown("---")
     st.markdown("""
     <p style='text-align:center;color:#555;font-size:0.8rem'>
-        🔥 SOLUS FORGE v2.0 | 
-        <a href="https://writeonsaga.com" target="_blank">CyberFilm</a> | 
+        🔥 SOLUS FORGE v2.0 |
         <a href="https://stability.ai" target="_blank">Stability AI</a> |
+        <a href="https://lumalabs.ai" target="_blank">Luma</a> |
+        <a href="https://runwayml.com" target="_blank">Runway</a> |
         Voice: Vivian (ElevenLabs)
     </p>
-    """, unsafe_allow_html=True
+    """, unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
