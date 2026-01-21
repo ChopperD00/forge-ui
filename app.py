@@ -527,7 +527,7 @@ STACK_CONFIG = {
             "Stability SPAR3D": {
                 "status": "active",
                 "type": "api",
-                "desc": "Image \u2192 3D mesh (<1 sec)",
+                "desc": "Image -> 3D mesh (<1 sec)",
                 "url": "https://stability.ai"
             }
         }
@@ -552,7 +552,7 @@ STACK_CONFIG = {
 INTENT_MODULES = [
     {
         "id": "brand",
-        "icon": "\ud83c\udfa8",
+        "icon": "[ART]",
         "title": "Brand Assets",
         "subtitle": "Emails, social, brand guides",
         "tools": ["Stability SD3.5", "Krea AI", "Figma", "Illustrator"],
@@ -560,15 +560,15 @@ INTENT_MODULES = [
     },
     {
         "id": "video_story",
-        "icon": "\ud83c\udfac",
+        "icon": "[VIDEO]",
         "title": "Video from Story",
-        "subtitle": "Script \u2192 Storyboard \u2192 Edit",
+        "subtitle": "Script -> Storyboard -> Edit",
         "tools": ["Claude Opus", "Krea AI", "Luma Dream Machine", "Runway Gen-3", "After Effects"],
         "color": "#9333EA"
     },
     {
         "id": "audio",
-        "icon": "\ud83c\udfb5",
+        "icon": "[MUSIC]",
         "title": "Audio Production",
         "subtitle": "Music, VO, SFX",
         "tools": ["ElevenLabs", "Stability Audio 2.5", "Suno V5"],
@@ -576,7 +576,7 @@ INTENT_MODULES = [
     },
     {
         "id": "image_gen",
-        "icon": "\ud83d\uddbc\ufe0f",
+        "icon": "[IMG]",
         "title": "Image Generation",
         "subtitle": "SD3.5, Krea",
         "tools": ["Stability SD3.5", "Krea AI"],
@@ -584,7 +584,7 @@ INTENT_MODULES = [
     },
     {
         "id": "quick_clips",
-        "icon": "\u26a1",
+        "icon": "[BOLT]",
         "title": "Quick Clips",
         "subtitle": "Instant video generation",
         "tools": ["Luma Dream Machine", "Runway Gen-3"],
@@ -592,7 +592,7 @@ INTENT_MODULES = [
     },
     {
         "id": "avatar",
-        "icon": "\ud83d\udc64",
+        "icon": "[USER]",
         "title": "Avatar & Presenter",
         "subtitle": "HeyGen clones, brand kit",
         "tools": ["HeyGen", "ElevenLabs"],
@@ -812,7 +812,7 @@ def render_pipeline_progress(pipeline: Pipeline):
     st.markdown(f"""
     <div style="background:#1a1a2e;border:1px solid #333;border-radius:12px;padding:1rem;margin:1rem 0">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-            <strong>\ud83d\udd04 {pipeline.name}</strong>
+            <strong>[REFRESH] {pipeline.name}</strong>
             <span style="color:#888;font-size:0.85rem">{pipeline.status.value.upper()}</span>
         </div>
         <div style="background:#333;border-radius:4px;height:8px;overflow:hidden">
@@ -828,15 +828,15 @@ def render_pipeline_progress(pipeline: Pipeline):
         if not stage_tasks:
             continue
 
-        with st.expander(f"\ud83d\udcc2 {stage.value.replace('_', ' ').title()}", expanded=stage_tasks[0].status == TaskStatus.RUNNING):
+        with st.expander(f"[OPEN] {stage.value.replace('_', ' ').title()}", expanded=stage_tasks[0].status == TaskStatus.RUNNING):
             for task in stage_tasks:
                 status_icon = {
-                    TaskStatus.PENDING: "\u23f3",
-                    TaskStatus.RUNNING: "\ud83d\udd04",
-                    TaskStatus.COMPLETED: "\u2705",
-                    TaskStatus.FAILED: "\u274c",
-                    TaskStatus.CANCELLED: "\u26d4"
-                }.get(task.status, "\u2753")
+                    TaskStatus.PENDING: "[TIME]",
+                    TaskStatus.RUNNING: "[REFRESH]",
+                    TaskStatus.COMPLETED: "[OK]",
+                    TaskStatus.FAILED: "[X]",
+                    TaskStatus.CANCELLED: "[STOP]"
+                }.get(task.status, "[?]")
 
                 duration_str = ""
                 if task.duration():
@@ -854,7 +854,7 @@ def render_pipeline_progress(pipeline: Pipeline):
 
 def render_orchestrator_panel():
     """Render orchestrator controls in sidebar or panel"""
-    st.markdown("### \u26a1 Orchestrator")
+    st.markdown("### [BOLT] Orchestrator")
 
     # Environment detection
     orch = get_active_orchestrator()
@@ -863,7 +863,7 @@ def render_orchestrator_panel():
 
     st.markdown(f"""
     <div style="background:#1a1a2e;border:1px solid {orch_color};border-radius:8px;padding:0.75rem;margin-bottom:1rem">
-        <span style="color:{orch_color};font-weight:bold">\u25cf {orch_type}</span>
+        <span style="color:{orch_color};font-weight:bold">* {orch_type}</span>
         <p style="color:#888;font-size:0.75rem;margin:0.25rem 0 0 0">
             {'Sub-agent parallel execution' if isinstance(orch, ClaudeTaskOrchestrator) else 'ThreadPoolExecutor (5 workers)'}
         </p>
@@ -885,9 +885,9 @@ def render_orchestrator_panel():
 
     # Quick actions
     st.markdown("#### Quick Pipelines")
-    if st.button("\ud83c\udfac Video Pipeline", use_container_width=True, help="Script \u2192 Storyboard \u2192 Video \u2192 Audio (parallel)"):
+    if st.button("[VIDEO] Video Pipeline", use_container_width=True, help="Script -> Storyboard -> Video -> Audio (parallel)"):
         st.session_state.show_video_pipeline_modal = True
-    if st.button("\ud83d\uddbc\ufe0f Image Variations", use_container_width=True, help="Generate 3 variations in parallel"):
+    if st.button("[IMG] Image Variations", use_container_width=True, help="Generate 3 variations in parallel"):
         st.session_state.show_image_pipeline_modal = True
 
 def check_mcp_status():
@@ -950,7 +950,7 @@ def render_tool_pill(name, status):
         'optional': 'pill-optional'
     }.get(status, 'pill-active')
     
-    label = {'new': '\u2728 NEW', 'mcp': '\ud83d\udd0c MCP', 'setup': '\u26a0\ufe0f SETUP'}.get(status, '')
+    label = {'new': '[SPARK] NEW', 'mcp': '[PLUG] MCP', 'setup': '[WARN] SETUP'}.get(status, '')
     
     return f'<span class="tool-pill {status_class}">{name} {label}</span>'
 
@@ -985,7 +985,7 @@ def page_lander():
     with col1:
         st.markdown('''
         <div class="stability-highlight">
-            <h3>\ud83c\udfaf Stability AI Suite</h3>
+            <h3>[TARGET] Stability AI Suite</h3>
             <p style="color:#aaa;margin:0.5rem 0">Multimodal generation platform</p>
             <ul style="color:#888;font-size:0.9rem">
                 <li>SD 3.5 Large - pro image generation</li>
@@ -999,7 +999,7 @@ def page_lander():
     with col2:
         st.markdown('''
         <div style="background:linear-gradient(135deg, #1a1a2e, #2d1f3d);border:2px solid #9333EA;border-radius:16px;padding:1.5rem;margin:1rem 0">
-            <h3>\ud83c\udfac Video Pipeline</h3>
+            <h3>[VIDEO] Video Pipeline</h3>
             <p style="color:#aaa;margin:0.5rem 0">Direct API control</p>
             <ul style="color:#888;font-size:0.9rem">
                 <li>Luma Dream Machine - fast iteration</li>
@@ -1042,7 +1042,7 @@ def page_workspace():
     # Header
     col1, col2, col3 = st.columns([1, 3, 1])
     with col1:
-        if st.button("\u2190 Back"):
+        if st.button("<- Back"):
             st.session_state.current_view = 'lander'
             st.session_state.selected_intent = None
             st.rerun()
@@ -1057,7 +1057,7 @@ def page_workspace():
     col_canvas, col_panel = st.columns([2, 1])
     
     with col_canvas:
-        st.markdown("### \ud83c\udfa8 Canvas")
+        st.markdown("### [ART] Canvas")
         
         # Intent-specific workspace
         if intent['id'] == 'video_story':
@@ -1081,16 +1081,16 @@ def page_workspace():
 
         st.markdown("---")
 
-        st.markdown("### \ud83e\uddf0 Tools")
+        st.markdown("###  Tools")
         for tool in intent['tools']:
             status = get_tool_status(tool)
             dot_class = {'new': 'dot-green', 'active': 'dot-green', 'mcp': 'dot-purple', 'setup': 'dot-yellow'}.get(status, 'dot-gray')
             st.markdown(f'<div class="model-selector"><span class="status-dot {dot_class}"></span>{tool}</div>', unsafe_allow_html=True)
 
-        st.markdown("### \ud83d\udcc1 Assets")
+        st.markdown("### [FOLDER] Assets")
         st.file_uploader("Drop files here", accept_multiple_files=True, label_visibility="collapsed")
 
-        st.markdown("### \ud83d\udcdd Notes")
+        st.markdown("### [MEMO] Notes")
         st.text_area("Session notes", height=100, label_visibility="collapsed", placeholder="Add notes about this project...")
 
 def get_tool_status(tool_name):
@@ -1108,8 +1108,8 @@ def render_video_story_workspace():
     """Video from Story workflow with orchestration support"""
     st.markdown('''
     <div style="background:linear-gradient(135deg, #1a1a2e, #2d1f3d);border:2px solid #9333EA;border-radius:16px;padding:1.5rem;margin:1rem 0">
-        <strong>\ud83c\udfac Video Production Pipeline</strong>
-        <p style="color:#888;font-size:0.9rem">Claude \u2192 Krea \u2192 Luma/Runway \u2192 After Effects</p>
+        <strong>[VIDEO] Video Production Pipeline</strong>
+        <p style="color:#888;font-size:0.9rem">Claude -> Krea -> Luma/Runway -> After Effects</p>
     </div>
     ''', unsafe_allow_html=True)
 
@@ -1117,39 +1117,39 @@ def render_video_story_workspace():
     if st.session_state.get('active_pipeline'):
         render_pipeline_progress(st.session_state.active_pipeline)
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["\ud83d\udcdd Script", "\ud83d\udc65 Characters", "\ud83d\uddbc\ufe0f Storyboard", "\ud83c\udfa5 Generate", "\u26a1 Pipeline"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["[MEMO] Script", "[USERS] Characters", "[IMG] Storyboard", "[CAMERA] Generate", "[BOLT] Pipeline"])
 
     with tab1:
         st.text_area("Script / Treatment", height=200, placeholder="Write your story here... Claude will help with formatting, coverage, and creative development.")
         col1, col2 = st.columns(2)
         with col1:
-            st.button("\u2728 Claude: Expand & Develop", use_container_width=True)
+            st.button("[SPARK] Claude: Expand & Develop", use_container_width=True)
         with col2:
-            st.button("\ud83d\udcd6 Format Screenplay", use_container_width=True)
+            st.button("[BOOK] Format Screenplay", use_container_width=True)
 
     with tab2:
         st.text_input("Character Name")
         st.text_area("Character Description", height=100)
-        st.button("\ud83c\udfa8 Generate Character Sheet (SD3.5)", use_container_width=True)
+        st.button("[ART] Generate Character Sheet (SD3.5)", use_container_width=True)
 
     with tab3:
         st.slider("Number of panels", 4, 24, 8)
         st.selectbox("Style", ["Cinematic", "Comic", "Anime", "Realistic"])
         col1, col2 = st.columns(2)
         with col1:
-            st.button("\u26a1 Iterate (Krea)", use_container_width=True)
+            st.button("[BOLT] Iterate (Krea)", use_container_width=True)
         with col2:
-            st.button("\ud83d\uddbc\ufe0f Final Frames (SD3.5)", use_container_width=True, type="primary")
+            st.button("[IMG] Final Frames (SD3.5)", use_container_width=True, type="primary")
 
     with tab4:
         st.selectbox("Video Model", ["Luma Dream Machine (Iteration)", "Runway Gen-3 (Polish)"])
         st.slider("Duration (seconds)", 5, 60, 15)
-        st.button("\ud83c\udfac Generate Video", use_container_width=True, type="primary")
+        st.button("[VIDEO] Generate Video", use_container_width=True, type="primary")
 
     with tab5:
         st.markdown("""
         <div style="background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:1rem;margin-bottom:1rem">
-            <strong>\u26a1 Full Pipeline Execution</strong>
+            <strong>[BOLT] Full Pipeline Execution</strong>
             <p style="color:#888;font-size:0.85rem;margin:0.5rem 0 0 0">
                 Run the complete video production workflow with parallel task execution.
                 Voice, SFX, and video generation run simultaneously where possible.
@@ -1161,7 +1161,7 @@ def render_video_story_workspace():
         script_input = st.text_area(
             "Script / Concept",
             height=120,
-            placeholder="Enter your video concept or script. The pipeline will:\n1. Expand with Claude\n2. Generate storyboard\n3. Create video (Luma \u2192 Runway)\n4. Generate voice & SFX in parallel",
+            placeholder="Enter your video concept or script. The pipeline will:\n1. Expand with Claude\n2. Generate storyboard\n3. Create video (Luma -> Runway)\n4. Generate voice & SFX in parallel",
             key="pipeline_script"
         )
 
@@ -1181,7 +1181,7 @@ def render_video_story_workspace():
         with stages_col1:
             st.markdown("""
             <div style="text-align:center;padding:0.5rem;background:#1a1a2e;border-radius:8px">
-                <div style="font-size:1.5rem">\ud83d\udcdd</div>
+                <div style="font-size:1.5rem">[MEMO]</div>
                 <div style="font-size:0.75rem;color:#888">Script</div>
                 <div style="font-size:0.65rem;color:#666">Claude</div>
             </div>
@@ -1189,7 +1189,7 @@ def render_video_story_workspace():
         with stages_col2:
             st.markdown("""
             <div style="text-align:center;padding:0.5rem;background:#1a1a2e;border-radius:8px">
-                <div style="font-size:1.5rem">\ud83d\uddbc\ufe0f</div>
+                <div style="font-size:1.5rem">[IMG]</div>
                 <div style="font-size:0.75rem;color:#888">Storyboard</div>
                 <div style="font-size:0.65rem;color:#666">Krea</div>
             </div>
@@ -1197,24 +1197,24 @@ def render_video_story_workspace():
         with stages_col3:
             st.markdown("""
             <div style="text-align:center;padding:0.5rem;background:#1a1a2e;border-radius:8px">
-                <div style="font-size:1.5rem">\ud83c\udfa5</div>
+                <div style="font-size:1.5rem">[CAMERA]</div>
                 <div style="font-size:0.75rem;color:#888">Video</div>
-                <div style="font-size:0.65rem;color:#666">Luma \u2192 Runway</div>
+                <div style="font-size:0.65rem;color:#666">Luma -> Runway</div>
             </div>
             """, unsafe_allow_html=True)
         with stages_col4:
             st.markdown("""
             <div style="text-align:center;padding:0.5rem;background:#1a1a2e;border-radius:8px">
-                <div style="font-size:1.5rem">\ud83d\udd0a</div>
+                <div style="font-size:1.5rem">[SOUND]</div>
                 <div style="font-size:0.75rem;color:#888">Audio</div>
-                <div style="font-size:0.65rem;color:#666">\u2225 Parallel</div>
+                <div style="font-size:0.65rem;color:#666">|| Parallel</div>
             </div>
             """, unsafe_allow_html=True)
 
         st.markdown("")
 
         # Execute button
-        if st.button("\ud83d\ude80 Run Full Pipeline", type="primary", use_container_width=True, disabled=not script_input):
+        if st.button("[ROCKET] Run Full Pipeline", type="primary", use_container_width=True, disabled=not script_input):
             if script_input:
                 # Create and execute pipeline
                 pipeline = create_video_pipeline(script_input, style.lower(), duration)
@@ -1238,7 +1238,7 @@ def render_video_story_workspace():
 
                 def update_progress(progress: float, task: Task):
                     progress_placeholder.progress(progress, f"Running: {task.name}")
-                    status_placeholder.markdown(f"\u2705 Completed: **{task.name}** ({task.tool})")
+                    status_placeholder.markdown(f"[OK] Completed: **{task.name}** ({task.tool})")
 
                 # Execute with orchestrator
                 orch = get_active_orchestrator()
@@ -1249,7 +1249,7 @@ def render_video_story_workspace():
                 st.session_state.pipeline_history.append(result)
 
                 if result.status == TaskStatus.COMPLETED:
-                    st.success(f"\u2705 Pipeline completed! {len(result.tasks)} tasks executed.")
+                    st.success(f"[OK] Pipeline completed! {len(result.tasks)} tasks executed.")
                 else:
                     failed = [t for t in result.tasks if t.status == TaskStatus.FAILED]
                     st.error(f"Pipeline finished with {len(failed)} failed tasks.")
@@ -1258,20 +1258,20 @@ def render_video_story_workspace():
 
 def render_audio_workspace():
     """Audio production workflow"""
-    tab1, tab2, tab3 = st.tabs(["\ud83d\udde3\ufe0f Voice (ElevenLabs)", "\ud83c\udfb5 Music (Suno)", "\ud83d\udd0a SFX (Stability)"])
+    tab1, tab2, tab3 = st.tabs(["[SPEAK] Voice (ElevenLabs)", "[MUSIC] Music (Suno)", "[SOUND] SFX (Stability)"])
     
     with tab1:
         st.markdown("**Voice: Vivian** (Australian, female)")
         text = st.text_area("Text to speak", value="Welcome to SOLUS FORGE.", height=100)
         api_key = st.text_input("ElevenLabs API Key", type="password")
-        if st.button("\ud83d\udd0a Generate Speech", type="primary"):
+        if st.button("[SOUND] Generate Speech", type="primary"):
             if api_key and text:
                 st.info("Generating speech... (API integration ready)")
     
     with tab2:
         st.text_area("Music prompt", placeholder="Upbeat electronic, female vocals, 120 BPM...", height=100)
         st.selectbox("Genre", ["Electronic", "Pop", "Cinematic", "Lo-Fi", "Rock"])
-        st.button("\ud83c\udfb5 Generate Music (Suno V5)", use_container_width=True)
+        st.button("[MUSIC] Generate Music (Suno V5)", use_container_width=True)
     
     with tab3:
         st.markdown('''
@@ -1282,7 +1282,7 @@ def render_audio_workspace():
         ''', unsafe_allow_html=True)
         st.text_area("SFX Description", placeholder="Thunder rumbling, rain on window, distant traffic...", height=80)
         st.slider("Duration", 1, 60, 10, format="%d sec")
-        st.button("\ud83d\udd0a Generate SFX", use_container_width=True, type="primary")
+        st.button("[SOUND] Generate SFX", use_container_width=True, type="primary")
 
 def render_image_workspace():
     """Image generation workflow"""
@@ -1298,7 +1298,7 @@ def render_image_workspace():
         st.slider("Steps", 20, 50, 30)
         st.slider("CFG Scale", 1.0, 15.0, 7.5)
 
-    if st.button("\ud83d\uddbc\ufe0f Generate Image", type="primary", use_container_width=True):
+    if st.button("[IMG] Generate Image", type="primary", use_container_width=True):
         st.info("Image generation ready - add API key in settings")
 
 def render_brand_workspace():
@@ -1316,14 +1316,14 @@ def render_brand_workspace():
             st.text_input("Headline")
             st.text_area("Body copy", height=80)
     
-    st.button("\ud83c\udfa8 Generate Asset", type="primary", use_container_width=True)
+    st.button("[ART] Generate Asset", type="primary", use_container_width=True)
 
 def render_quickclips_workspace():
     """Quick video clip generation"""
     st.markdown('''
     <div style="background:#1a1a2e;padding:1rem;border-radius:8px;margin-bottom:1rem">
-        <strong>\u26a1 Instant Video Generation</strong>
-        <p style="color:#888;font-size:0.85rem;margin:0">Direct text-to-video \u2014 Luma for iteration, Runway for polish</p>
+        <strong>[BOLT] Instant Video Generation</strong>
+        <p style="color:#888;font-size:0.85rem;margin:0">Direct text-to-video - Luma for iteration, Runway for polish</p>
     </div>
     ''', unsafe_allow_html=True)
 
@@ -1337,13 +1337,13 @@ def render_quickclips_workspace():
     with col3:
         st.selectbox("Aspect", ["16:9", "9:16", "1:1"])
 
-    st.button("\u26a1 Generate Clip", type="primary", use_container_width=True)
+    st.button("[BOLT] Generate Clip", type="primary", use_container_width=True)
 
 def render_avatar_workspace():
     """Avatar creation workflow"""
     st.markdown('''
     <div style="background:#1a1a2e;padding:1rem;border-radius:8px;margin-bottom:1rem">
-        <strong>\ud83d\udc64 HeyGen Avatar Studio</strong>
+        <strong>[USER] HeyGen Avatar Studio</strong>
         <p style="color:#888;font-size:0.85rem;margin:0">Create AI presenters and brand avatars</p>
     </div>
     ''', unsafe_allow_html=True)
@@ -1358,7 +1358,7 @@ def render_avatar_workspace():
     with tab2:
         st.selectbox("Select Avatar", ["Custom Avatar 1", "Stock - Professional Female", "Stock - Professional Male"])
         st.text_area("Script", height=150)
-        st.button("\ud83c\udfa5 Generate Avatar Video", type="primary", use_container_width=True)
+        st.button("[CAMERA] Generate Avatar Video", type="primary", use_container_width=True)
 
 def page_stack():
     """Full stack overview"""
@@ -1366,11 +1366,11 @@ def page_stack():
     st.markdown('<p class="sub-header">SOLUS FORGE v2.0 - Streamlined Creative Stack</p>', unsafe_allow_html=True)
     
     # Changes Summary
-    st.markdown("### \ud83d\udd04 What's Changed in v2.0")
+    st.markdown("### [REFRESH] What's Changed in v2.0")
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("#### \u2795 Added / Prioritized")
+        st.markdown("#### [+] Added / Prioritized")
         st.markdown("""
         - **Luma Dream Machine** - Direct API, fast iteration
         - **Stability SD 3.5** - Pro image generation
@@ -1380,11 +1380,11 @@ def page_stack():
         """)
 
     with col2:
-        st.markdown("#### \u2796 Removed / Optional")
+        st.markdown("#### [-] Removed / Optional")
         st.markdown("""
-        - ~~CyberFilm SAGA~~ \u2192 *Build pipeline with existing tools*
-        - ~~Saga.so~~ \u2192 *Not essential*
-        - **Suno V5** \u2192 *Optional (Stability Audio for SFX)*
+        - ~~CyberFilm SAGA~~ -> *Build pipeline with existing tools*
+        - ~~Saga.so~~ -> *Not essential*
+        - **Suno V5** -> *Optional (Stability Audio for SFX)*
         """)
     
     st.markdown("---")
@@ -1408,7 +1408,7 @@ def page_stack():
                             <div style="background:#1a1a2e;padding:1rem;border-radius:8px;border-left:3px solid {status_color}">
                                 <strong>{name}</strong><br>
                                 <small style="color:#888">{info['desc']}</small><br>
-                                <span style="color:{status_color};font-size:0.8rem">\u25cf {info['status'].upper()}</span>
+                                <span style="color:{status_color};font-size:0.8rem">* {info['status'].upper()}</span>
                             </div>
                             ''', unsafe_allow_html=True)
             else:
@@ -1421,7 +1421,7 @@ def page_stack():
                         <div style="background:#1a1a2e;padding:1rem;border-radius:8px;border-left:3px solid {status_color}">
                             <strong>{name}</strong><br>
                             <small style="color:#888">{info['desc']}</small><br>
-                            <span style="color:{status_color};font-size:0.8rem">\u25cf {info['status'].upper()}</span>
+                            <span style="color:{status_color};font-size:0.8rem">* {info['status'].upper()}</span>
                         </div>
                         ''', unsafe_allow_html=True)
         
@@ -1431,7 +1431,7 @@ def page_settings():
     """Settings and API keys"""
     st.markdown('<h1 class="main-header">:gear: Settings</h1>', unsafe_allow_html=True)
     
-    tab1, tab2, tab3 = st.tabs(["\ud83d\udd11 API Keys", "\ud83d\udd0c MCP Status", "\ud83d\udcd6 Setup Guide"])
+    tab1, tab2, tab3 = st.tabs(["[KEY] API Keys", "[PLUG] MCP Status", "[BOOK] Setup Guide"])
     
     with tab1:
         st.markdown("### Generation APIs")
@@ -1448,7 +1448,7 @@ def page_settings():
         st.markdown("### Video Generation")
         st.text_input("Luma AI", type="password", key="api_luma")
         
-        if st.button("\ud83d\udcbe Save API Keys"):
+        if st.button("[SAVE] Save API Keys"):
             st.success("API keys saved to session")
     
     with tab2:
@@ -1462,10 +1462,10 @@ def page_settings():
             ("Illustrator", status.get('illustrator', False)),
             ("Premiere Pro", status.get('premiere', False))
         ]:
-            icon = "\u2705" if connected else "\u26a0\ufe0f"
+            icon = "[OK]" if connected else "[WARN]"
             st.markdown(f"{icon} **{app}**: {'Connected' if connected else 'Not configured'}")
         
-        if st.button("\ud83d\udd04 Refresh MCP Status"):
+        if st.button("[REFRESH] Refresh MCP Status"):
             st.session_state.mcp_status = check_mcp_status()
             st.rerun()
     
