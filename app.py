@@ -847,7 +847,7 @@ def render_pipeline_progress(pipeline: Pipeline):
                     st.markdown(f"{status_icon} **{task.name}** `{task.tool}`{duration_str}")
                 with col2:
                     if task.status == TaskStatus.COMPLETED and task.result:
-                        st.markdown("\ud83d\udce6 Result")
+                        st.markdown(":package: Result")
 
                 if task.error:
                     st.error(f"Error: {task.error}")
@@ -960,7 +960,7 @@ def render_tool_pill(name, status):
 
 def page_lander():
     """Main landing page with intent selection"""
-    st.markdown('<h1 class="main-header">\ud83d\udd25 SOLUS FORGE</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">:fire: SOLUS FORGE</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">What are you building today?</p>', unsafe_allow_html=True)
     
     # Intent Grid
@@ -1011,7 +1011,7 @@ def page_lander():
         ''', unsafe_allow_html=True)
     
     # Quick Stack Overview
-    st.markdown("### \ud83d\udce6 Current Stack")
+    st.markdown("### :package: Current Stack")
     
     tab1, tab2, tab3, tab4 = st.tabs(["Pre-Production", "Generation", "Post-Production", "Avatars"])
     
@@ -1362,7 +1362,7 @@ def render_avatar_workspace():
 
 def page_stack():
     """Full stack overview"""
-    st.markdown('<h1 class="main-header">\ud83d\udce6 Stack Overview</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">:package: Stack Overview</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">SOLUS FORGE v2.0 - Streamlined Creative Stack</p>', unsafe_allow_html=True)
     
     # Changes Summary
@@ -1429,7 +1429,7 @@ def page_stack():
 
 def page_settings():
     """Settings and API keys"""
-    st.markdown('<h1 class="main-header">\u2699\ufe0f Settings</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">:gear: Settings</h1>', unsafe_allow_html=True)
     
     tab1, tab2, tab3 = st.tabs(["\ud83d\udd11 API Keys", "\ud83d\udd0c MCP Status", "\ud83d\udcd6 Setup Guide"])
     
@@ -1505,19 +1505,19 @@ def main():
     
     # Sidebar Navigation
     with st.sidebar:
-        st.markdown("## \ud83d\udd25 FORGE v2.0")
+        st.markdown("## :fire: FORGE v2.0")
         st.markdown("---")
         
-        if st.button("\ud83c\udfe0 Home", use_container_width=True):
+        if st.button(":house: Home", use_container_width=True):
             st.session_state.current_view = 'lander'
             st.session_state.selected_intent = None
             st.rerun()
         
-        if st.button("\ud83d\udce6 Stack", use_container_width=True):
+        if st.button(":package: Stack", use_container_width=True):
             st.session_state.current_view = 'stack'
             st.rerun()
         
-        if st.button("\u2699\ufe0f Settings", use_container_width=True):
+        if st.button(":gear: Settings", use_container_width=True):
             st.session_state.current_view = 'settings'
             st.rerun()
         
@@ -1545,7 +1545,7 @@ def main():
     st.markdown("---")
     st.markdown("""
     <p style='text-align:center;color:#555;font-size:0.8rem'>
-        \ud83d\udd25 SOLUS FORGE v2.0 |
+        :fire: SOLUS FORGE v2.0 |
         <a href="https://stability.ai" target="_blank">Stability AI</a> |
         <a href="https://lumalabs.ai" target="_blank">Luma</a> |
         <a href="https://runwayml.com" target="_blank">Runway</a> |
